@@ -1,0 +1,9 @@
+{
+  "name": "jev-triage",
+  "version": "0.1.0",
+  "description": "Jev triage for coding agents: decides whether a ticket runs in one Build session or with the Orchestrator.",
+  "type": "module",
+  "scripts": { "test": "node --test" },
+  "author": { "name": "Juan Cruz Rossi", "url": "https://github.com/juancruzrossi" },
+  "repository": { "type": "git", "url": "git+https://github.com/juancruzrossi/jev-triage.git" }
+}
