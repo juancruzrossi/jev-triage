@@ -47,13 +47,12 @@ const title = (ticket) => ticket.split('\n')[0].slice(0, 80);
 export const headline = (answer) => `${NAMES[answer.choice]} | ${pct(answer.confidence)} confidence`;
 
 export function readApiKey() {
-  if (process.env.JEV_API_KEY) return process.env.JEV_API_KEY;
   try {
-    const line = readFileSync(path.join(os.homedir(), '.envs'), 'utf8').split('\n').find((l) => l.startsWith('JEV_API_KEY='));
-    return line ? line.slice('JEV_API_KEY='.length).trim() : null;
+    process.loadEnvFile(path.join(os.homedir(), '.env')); // never overrides a variable already set
   } catch {
-    return null;
+    // No ~/.env: rely on the environment.
   }
+  return process.env.JEV_API_KEY || null;
 }
 
 export async function askJev(apiKey, ticket, fetchImpl = fetch) {
@@ -99,7 +98,7 @@ async function main(argv) {
   const tickets = splitBacklog(text);
   if (tickets.length === 0) throw new Error(`Pass a file path (tickets separated by lines "${SEPARATOR}"), the ticket text, or the ticket on stdin.`);
   const apiKey = readApiKey();
-  if (!apiKey) throw new Error('JEV_API_KEY is not set (checked the environment and ~/.envs).');
+  if (!apiKey) throw new Error('JEV_API_KEY is not set (checked the environment and ~/.env).');
 
   for (const ticket of tickets) {
     const answer = await askJev(apiKey, ticket);

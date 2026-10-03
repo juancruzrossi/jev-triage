@@ -12,7 +12,7 @@ Build | 96% confidence
 
 ## Install
 
-Needs Node.js and a [TypeSafe](https://console.typesafe.ai) API key as `JEV_API_KEY`, in your environment or in `~/.envs`.
+Needs Node.js 20.12+ and a [TypeSafe](https://console.typesafe.ai) API key as `JEV_API_KEY`, in your environment or in `~/.env`.
 
 ```
 git clone https://github.com/juancruzrossi/jev-triage.git
