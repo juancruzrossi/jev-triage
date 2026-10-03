@@ -109,6 +109,8 @@ async function main(argv) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  // Piping into `head` closes stdout early; that is not an error.
+  process.stdout.on('error', (error) => process.exit(error.code === 'EPIPE' ? 0 : 1));
   main(process.argv.slice(2)).catch((error) => {
     console.error(`jev-triage: ${error.message}`);
     process.exit(1);
