@@ -1,49 +1,49 @@
 # jev-triage
 
-Ask [Jev](https://typesafe.ai) whether a ticket or spec should run in one OpenCode **Build** session or with the **Orchestrator** and its subagents.
+Ask [Jev](https://typesafe.ai) whether a ticket or spec should run in one agent session (**Build**) or with an **Orchestrator** and its subagents, then start it in OpenCode or Claude Code.
 
 ```
 $ jev-triage "Add a log line when a webhook delivery fails."
-Build | 96% confidence
+Build | 97% confidence
+→ opencode --agent build --prompt "Add a log line when a webhook delivery fails."
+Start Build in OpenCode? [y/N]
 ```
 
 - **Build**: one session does everything. Small, low-risk work in one area.
 - **Orchestrator**: researcher, implementer, reviewer, and end-to-end verifier. Work across modules, breaking changes, migrations, data risk, or unclear scope.
+- **Not ready**: too vague for any agent. Nothing starts.
 
 ## Install
 
-Needs Node.js 20.12+ and a [TypeSafe](https://console.typesafe.ai) API key as `JEV_API_KEY`, in your environment or in `~/.env`.
+Needs Node.js 20.12+ and a [TypeSafe](https://console.typesafe.ai) API key.
 
 ```
 git clone https://github.com/juancruzrossi/jev-triage.git
 cd jev-triage
 ./install.sh
+echo "JEV_API_KEY=your-key" >> ~/.jev/.env
 ```
 
-Installs `jev-triage` in `~/.local/bin`.
+Installs `jev-triage` in `~/.local/bin`. To update: `git pull`.
 
 ## Use
 
 ```
 jev-triage "ticket text"
 jev-triage path/to/spec.md
-jev-triage path/to/backlog.txt
+jev-triage --provider claude path/to/spec.md
 ```
 
-Separate several tickets in one file with a `+++` line:
+For a single ticket it shows the command and asks before starting it. A spec file is passed to the agent by path.
+
+Several tickets in one file, separated by a `+++` line, get one line each and start nothing:
 
 ```
-$ cat backlog.md
-Fix a typo in the login error message.
-+++
-Prevent two concurrent payments from charging the same invoice twice.
-
 $ jev-triage backlog.md
-Build | 100% confidence         Fix a typo in the login error message.
+Build | 100% confidence         Fix the typo "Pasword" in the login error message.
 Orchestrator | 100% confidence  Prevent two concurrent payments from charging the same invoice twice.
+Not ready | 100% confidence     Save a variable.
 ```
-
-In OpenCode, run it without a model: `!jev-triage backlog.md`.
 
 ## Confidence
 
@@ -53,7 +53,26 @@ In OpenCode, run it without a model: `!jev-triage backlog.md`.
 | 50-89% | Leaning. Take a look. |
 | Below 50% | Unsure. Add detail or decide yourself. |
 
-Up to about 100 KB per ticket. Edit `REPOSITORY` and `MODES` in `triage.mjs` to fit your codebase. Decisions are logged locally to `~/.local/state/jev-triage/decisions.jsonl`.
+## Config
+
+Optional, in `~/.jev/triage/config.json`:
+
+```json
+{
+  "provider": "opencode",
+  "repository": "Backend API in Go with Postgres",
+  "agents": {
+    "opencode": { "build": "build", "orchestrator": "orchestrator" },
+    "claude": { "orchestrator": "my-lead-agent" }
+  }
+}
+```
+
+- `provider`: `opencode` (default) or `claude`.
+- `repository`: one line about your codebase, so Jev judges in context.
+- `agents`: the `--agent` to open per mode. Claude Code opens its default agent unless you set one.
+
+Decisions are logged to `~/.jev/triage/decisions.jsonl` and never leave your machine.
 
 ## Uninstall
 
