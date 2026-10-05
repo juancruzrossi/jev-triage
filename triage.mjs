@@ -51,11 +51,10 @@ const PROVIDERS = { opencode: 'OpenCode', claude: 'Claude Code' };
 const pct = (p) => `${Math.round(p * 100)}%`;
 const title = (ticket) => ticket.split('\n')[0].slice(0, 80);
 
-// The interactive app to open, with the prompt already typed in.
-export function launchCommand(provider, mode, prompt, agents = DEFAULTS.agents) {
+// The interactive app to open, on the agent for the chosen mode when one is set.
+export function launchCommand(provider, mode, agents = DEFAULTS.agents) {
   const agent = agents[provider]?.[mode];
-  const flag = agent ? ['--agent', agent] : [];
-  return provider === 'opencode' ? ['opencode', ...flag, '--prompt', prompt] : ['claude', ...flag, prompt];
+  return agent ? [provider, '--agent', agent] : [provider];
 }
 
 export function loadConfig(file = path.join(JEV_HOME, 'triage', 'config.json')) {
@@ -123,14 +122,9 @@ export function parseArgs(argv) {
   return { provider, input: args.join(' ').trim(), single: args.length === 1 };
 }
 
-// A spec file is handed over by path, so the agent reads it instead of a huge pasted prompt.
-export const promptFor = (ticket, file) => (file ? `Implement the spec at ${path.resolve(file)}` : ticket);
-
-const shown = (cmd) => cmd.map((a) => (/[\s"']/.test(a) ? JSON.stringify(a.length > 80 ? `${a.slice(0, 77)}...` : a) : a)).join(' ');
-
-async function confirmAndLaunch(d, provider, prompt, agents) {
-  const cmd = launchCommand(provider, d.verdict, prompt, agents);
-  console.log(`→ ${shown(cmd)}`);
+async function confirmAndLaunch(d, provider, agents) {
+  const cmd = launchCommand(provider, d.verdict, agents);
+  console.log(`→ ${cmd.join(' ')}`);
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const answer = (await rl.question(`Start ${NAMES[d.verdict]} in ${PROVIDERS[provider]}? [y/N] `)).trim().toLowerCase();
   rl.close();
@@ -167,7 +161,7 @@ async function main(argv) {
   }
   // Asking needs a keyboard: skip it when the ticket came through a pipe or the output is redirected.
   if (!process.stdin.isTTY || !process.stdout.isTTY) return;
-  await confirmAndLaunch(d, provider, promptFor(tickets[0], file), config.agents);
+  await confirmAndLaunch(d, provider, config.agents);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

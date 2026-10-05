@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { askJev, buildRequest, decide, DEFAULTS, headline, launchCommand, loadConfig, parseArgs, promptFor, splitBacklog } from '../triage.mjs';
+import { askJev, buildRequest, decide, DEFAULTS, headline, launchCommand, loadConfig, parseArgs, splitBacklog } from '../triage.mjs';
 
 const answers = ({ mode = 'build', gaps = {} } = {}) => ({
   mode: { choice: mode, confidence: 0.58 },
@@ -32,20 +32,15 @@ test('asks one three-way choice plus each gap in one request', () => {
 });
 
 test('opens the interactive app of each provider, with an agent only when one is configured', () => {
-  assert.deepEqual(launchCommand('opencode', 'orchestrator', 'p'), ['opencode', '--agent', 'orchestrator', '--prompt', 'p']);
-  assert.deepEqual(launchCommand('claude', 'orchestrator', 'p'), ['claude', 'p']);
-  assert.deepEqual(launchCommand('claude', 'orchestrator', 'p', { claude: { orchestrator: 'lead' } }), ['claude', '--agent', 'lead', 'p']);
+  assert.deepEqual(launchCommand('opencode', 'orchestrator'), ['opencode', '--agent', 'orchestrator']);
+  assert.deepEqual(launchCommand('claude', 'orchestrator'), ['claude']);
+  assert.deepEqual(launchCommand('claude', 'orchestrator', { claude: { orchestrator: 'lead' } }), ['claude', '--agent', 'lead']);
 });
 
 test('reads --provider anywhere and rejects unknown ones', () => {
   assert.deepEqual(parseArgs(['--provider', 'claude', 'spec.md']), { provider: 'claude', input: 'spec.md', single: true });
   assert.deepEqual(parseArgs(['fix', 'the', 'typo']), { provider: null, input: 'fix the typo', single: false });
   assert.throws(() => parseArgs(['--provider', 'codex', 'x']), /Unknown provider/);
-});
-
-test('hands a spec file over by absolute path and a ticket as text', () => {
-  assert.equal(promptFor('ticket', null), 'ticket');
-  assert.equal(promptFor('ignored', 'spec.md'), `Implement the spec at ${path.resolve('spec.md')}`);
 });
 
 test('config falls back to defaults and overrides what it sets', () => {

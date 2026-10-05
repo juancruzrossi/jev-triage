@@ -5,7 +5,7 @@ Ask [Jev](https://typesafe.ai) whether a ticket or spec should run in one agent 
 ```
 $ jev-triage "Add a log line when a webhook delivery fails."
 Build | 97% confidence
-→ opencode --agent build --prompt "Add a log line when a webhook delivery fails."
+→ opencode --agent build
 Start Build in OpenCode? [y/N]
 ```
 
@@ -34,7 +34,7 @@ jev-triage path/to/spec.md
 jev-triage --provider claude path/to/spec.md
 ```
 
-For a single ticket it shows the command and asks before starting it. A spec file is passed to the agent by path.
+For a single ticket it shows the command and asks before opening the agent.
 
 Several tickets in one file, separated by a `+++` line, get one line each and start nothing:
 
