@@ -72,8 +72,6 @@ Optional, in `~/.jev/triage/config.json`:
 - `repository`: one line about your codebase, so Jev judges in context.
 - `agents`: the `--agent` to open per mode. Claude Code opens its default agent unless you set one.
 
-Decisions are logged to `~/.jev/triage/decisions.jsonl` and never leave your machine.
-
 ## Uninstall
 
 ```

@@ -5,8 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { askJev, buildRequest, decide, DEFAULTS, headline, launchCommand, loadConfig, parseArgs, promptFor, splitBacklog } from '../triage.mjs';
 
-const answers = ({ ready = 'ready', mode = 'build', gaps = {} } = {}) => ({
-  ready: { choice: ready, confidence: 0.85 },
+const answers = ({ mode = 'build', gaps = {} } = {}) => ({
   mode: { choice: mode, confidence: 0.58 },
   goal: { noul: gaps.goal ?? 0.1 },
   where: { noul: gaps.where ?? 0.1 },
@@ -19,14 +18,16 @@ test("prints Jev's mode with Jev's confidence", () => {
 });
 
 test('a not-ready ticket lists the gaps Jev finds more likely missing than not', () => {
-  const d = decide(answers({ ready: 'not_ready', gaps: { goal: 0.9, where: 0.6, check: 0.4 } }));
-  assert.equal(headline(d), 'Not ready | 85% confidence');
+  const d = decide(answers({ mode: 'not_ready', gaps: { goal: 0.9, where: 0.6, check: 0.4 } }));
+  assert.equal(headline(d), 'Not ready | 58% confidence');
   assert.deepEqual(d.missing, ['what to change', 'which feature']);
+  assert.deepEqual(decide(answers({ gaps: { goal: 0.9 } })).missing, []);
 });
 
-test('asks readiness, mode, and each gap in one request', () => {
+test('asks one three-way choice plus each gap in one request', () => {
   const { questions, state } = buildRequest('ticket', 'repo');
-  assert.deepEqual(Object.keys(questions).sort(), ['check', 'goal', 'mode', 'ready', 'where']);
+  assert.deepEqual(Object.keys(questions).sort(), ['check', 'goal', 'mode', 'where']);
+  assert.deepEqual(Object.keys(questions.mode.criteria), ['build', 'orchestrator', 'not_ready']);
   assert.deepEqual(state, { repository: 'repo', ticket: 'ticket' });
 });
 
